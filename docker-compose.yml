@@ -1,0 +1,20 @@
+# DataKit for the AWS Emulator observability lab.
+# Only the OpenTelemetry input is enabled; no host/rootfs access, no --privileged.
+services:
+  datakit:
+    image: pubrepo.guance.com/datakit/datakit:2.19.2
+    container_name: datakit
+    hostname: aws-emulator-lab
+    working_dir: /usr/local/datakit
+    env_file: .env.datakit              # ENV_DATAWAY (contains your workspace token; gitignored)
+    environment:
+      ENV_HTTP_LISTEN: "0.0.0.0:9529"   # inside the container; published on host loopback only
+      ENV_DEFAULT_ENABLED_INPUTS: "dk"  # DataKit self-metrics only; OTel comes from conf.d
+      ENV_GLOBAL_HOST_TAGS: "lab=aws-emulator"
+    volumes:
+      - ./datakit/conf.d:/usr/local/datakit/conf.d/host-inputs-conf:ro
+    ports:
+      - "127.0.0.1:9529:9529"
+    cpus: 1
+    mem_limit: 512m
+    restart: unless-stopped

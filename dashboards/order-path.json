@@ -1,0 +1,439 @@
+{
+  "title": "AWS Emulator · 订单链路",
+  "main": {
+    "charts": [
+      {
+        "type": "singlestat",
+        "name": "订单吞吐（单/分钟）",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 0,
+          "y": 0,
+          "w": 6,
+          "h": 5
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "promql",
+            "query": {
+              "funcList": [],
+              "q": "sum(rate(otel_service:orders_total[5m])) * 60",
+              "type": "promql"
+            },
+            "type": "singlestat"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "近 5 分钟平均",
+            "showFieldMapping": false,
+            "timeInterval": "auto",
+            "precision": "1",
+            "downsample": "last"
+          }
+        }
+      },
+      {
+        "type": "singlestat",
+        "name": "订单错误率 %",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 6,
+          "y": 0,
+          "w": 6,
+          "h": 5
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "promql",
+            "query": {
+              "funcList": [],
+              "q": "sum(rate(otel_service:orders_total{outcome=\"error\"}[5m])) / sum(rate(otel_service:orders_total[5m])) * 100",
+              "type": "promql"
+            },
+            "type": "singlestat"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "outcome=error 的订单占比，近 5 分钟",
+            "showFieldMapping": false,
+            "timeInterval": "auto",
+            "precision": "1",
+            "downsample": "last"
+          }
+        }
+      },
+      {
+        "type": "singlestat",
+        "name": "订单 P95 耗时 ms",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 12,
+          "y": 0,
+          "w": 6,
+          "h": 5
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "promql",
+            "query": {
+              "funcList": [],
+              "q": "histogram_quantile(0.95, sum by (le) (rate(otel_service:order_duration_ms_bucket[5m])))",
+              "type": "promql"
+            },
+            "type": "singlestat"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "应用侧直方图 order_duration_ms",
+            "showFieldMapping": false,
+            "timeInterval": "auto",
+            "precision": "0",
+            "downsample": "last"
+          }
+        }
+      },
+      {
+        "type": "singlestat",
+        "name": "AWS API 平均耗时 ms",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 18,
+          "y": 0,
+          "w": 6,
+          "h": 5
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "dql",
+            "query": {
+              "funcList": [],
+              "q": "M::tracing_metrics:(sum(latency_sum) / sum(latency_count) / 1000) { service in ['s3', 'sqs', 'dynamodb'] }",
+              "type": "dql"
+            },
+            "type": "singlestat"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "DataKit 从 Trace 派生的 tracing_metrics（S3/SQS/DynamoDB）",
+            "showFieldMapping": false,
+            "timeInterval": "auto",
+            "precision": "1",
+            "downsample": "last"
+          }
+        }
+      },
+      {
+        "type": "sequence",
+        "name": "订单吞吐（按结果）",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 0,
+          "y": 5,
+          "w": 12,
+          "h": 8
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "promql",
+            "query": {
+              "funcList": [],
+              "q": "sum by (outcome) (rate(otel_service:orders_total[1m])) * 60",
+              "type": "promql"
+            },
+            "type": "sequence"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "单/分钟",
+            "showFieldMapping": false,
+            "timeInterval": "auto",
+            "chartType": "line"
+          }
+        }
+      },
+      {
+        "type": "sequence",
+        "name": "订单 P95 耗时（ms）",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 12,
+          "y": 5,
+          "w": 12,
+          "h": 8
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "promql",
+            "query": {
+              "funcList": [],
+              "q": "histogram_quantile(0.95, sum by (le) (rate(otel_service:order_duration_ms_bucket[1m])))",
+              "type": "promql"
+            },
+            "type": "sequence"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "slow 故障会把它拉高，但不会产生错误",
+            "showFieldMapping": false,
+            "timeInterval": "auto",
+            "chartType": "line"
+          }
+        }
+      },
+      {
+        "type": "sequence",
+        "name": "订单按注入故障类型",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 0,
+          "y": 13,
+          "w": 12,
+          "h": 8
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "promql",
+            "query": {
+              "funcList": [],
+              "q": "sum by (fault) (rate(otel_service:orders_total[1m])) * 60",
+              "type": "promql"
+            },
+            "type": "sequence"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "none / slow / missing-object / bad-param / bad-item",
+            "showFieldMapping": false,
+            "timeInterval": "auto",
+            "chartType": "line"
+          }
+        }
+      },
+      {
+        "type": "sequence",
+        "name": "错误数（按服务与状态码，Trace 派生）",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 12,
+          "y": 13,
+          "w": 12,
+          "h": 8
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "dql",
+            "query": {
+              "funcList": [],
+              "q": "M::tracing_metrics:(sum(errors)) by service, http_status_code",
+              "type": "dql"
+            },
+            "type": "sequence"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "s3 404 = NoSuchKey；dynamodb 400 = ValidationException；pricing-service 404 = 未知商品",
+            "showFieldMapping": false,
+            "timeInterval": "auto",
+            "chartType": "line"
+          }
+        }
+      },
+      {
+        "type": "table",
+        "name": "AWS 操作 P95 耗时（μs）",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 0,
+          "y": 21,
+          "w": 12,
+          "h": 9
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "dql",
+            "query": {
+              "funcList": [],
+              "q": "T::*:(percentile(duration, 95), count(*)) { service in ['s3', 'sqs', 'dynamodb', 'sts'] } by resource",
+              "type": "dql"
+            },
+            "type": "table"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "直接对 Trace 统计，按单个 AWS API",
+            "showFieldMapping": false,
+            "timeInterval": "default",
+            "isTimeInterval": false,
+            "queryMode": "toGroupColumn",
+            "mainMeasurementQueryCode": "A",
+            "mainMeasurementSort": "top",
+            "mainMeasurementLimit": 20,
+            "pageSize": 0,
+            "fixedTime": ""
+          }
+        }
+      },
+      {
+        "type": "table",
+        "name": "AWS 操作错误（Trace）",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 12,
+          "y": 21,
+          "w": 12,
+          "h": 9
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "dql",
+            "query": {
+              "funcList": [],
+              "q": "T::*:(count(*)) { service in ['s3', 'sqs', 'dynamodb', 'sts'], status = 'error' } by resource",
+              "type": "dql"
+            },
+            "type": "table"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "点进链路查看器按 resource 过滤可看具体 Trace",
+            "showFieldMapping": false,
+            "timeInterval": "default",
+            "isTimeInterval": false,
+            "queryMode": "toGroupColumn",
+            "mainMeasurementQueryCode": "A",
+            "mainMeasurementSort": "top",
+            "mainMeasurementLimit": 20,
+            "pageSize": 0,
+            "fixedTime": ""
+          }
+        }
+      },
+      {
+        "type": "table",
+        "name": "错误日志（带 trace_id 可跳转链路）",
+        "group": {
+          "name": ""
+        },
+        "pos": {
+          "x": 0,
+          "y": 30,
+          "w": 24,
+          "h": 8
+        },
+        "queries": [
+          {
+            "color": "",
+            "datasource": "dataflux",
+            "disabled": false,
+            "name": "",
+            "qtype": "dql",
+            "query": {
+              "funcList": [],
+              "q": "L::*:(count(*)) { status = 'error', service in ['order-api', 'pricing-service', 'shipping-worker'] } by message",
+              "type": "dql"
+            },
+            "type": "table"
+          }
+        ],
+        "extend": {
+          "settings": {
+            "showTitle": true,
+            "titleDesc": "",
+            "showFieldMapping": false,
+            "timeInterval": "default",
+            "isTimeInterval": false,
+            "queryMode": "toGroupColumn",
+            "mainMeasurementQueryCode": "A",
+            "mainMeasurementSort": "top",
+            "mainMeasurementLimit": 20,
+            "pageSize": 0,
+            "fixedTime": ""
+          }
+        }
+      }
+    ],
+    "vars": [],
+    "groups": [],
+    "type": "template"
+  }
+}
